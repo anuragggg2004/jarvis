@@ -61,11 +61,18 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this if needed, frontend runs on settings.FRONTEND_URL
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        settings.FRONTEND_URL
+    ],
+    allow_origin_regex="https://.*\\.onrender\\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
