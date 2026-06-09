@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:16-pg16
+    container_name: jarvis-db
+    environment:
+      POSTGRES_USER: anurag
+      POSTGRES_PASSWORD: jarvis
+      POSTGRES_DB: jarvis
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anurag -d jarvis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: jarvis-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jarvis-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama-pull:
+    image: curlimages/curl:latest
+    container_name: jarvis-ollama-pull
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for Ollama service to boot...';
+      until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 3; done;
+      echo 'Ollama is online. Pulling LLM model (llama3.2)...';
+      curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"llama3.2\"}';
+      echo '\nPulling embedding model (mxbai-embed-large)...';
+      curl -X POST http://ollama:11434/api/pull -d '{\"name\":\"mxbai-embed-large\"}';
+      echo '\nOllama models successfully cached!';
+      "
+    depends_on:
+      - ollama
+
+  backend:
+    build: ./backend
+    container_name: jarvis-backend
+    environment:
+      - DATABASE_URL=postgresql://anurag:jarvis@db:5432/jarvis
+      - REDIS_URL=redis://redis:6379/0
+      - FRONTEND_URL=http://localhost
+      - OLLAMA_URL=http://ollama:11434
+      - MASTER_PASSPHRASE=password123
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadata:/data/chroma
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+  frontend:
+    image: nginx:alpine
+    container_name: jarvis-frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  ollama:
+  chromadata:

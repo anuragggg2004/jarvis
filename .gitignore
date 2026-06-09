@@ -1,0 +1,22 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# Environment files
+.env
+.env.local
+
+# Databases & local stores
+data/
+chroma/
+pgdata/
+ollama/
+
+# OS files
+.DS_Store
+Thumbs.db

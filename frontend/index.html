@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS — Core Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Grid and Glows -->
+    <div class="hologram-grid"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo-area">
+                <div class="reactor-core"></div>
+                <div class="logo-text">
+                    <h1>JARVIS</h1>
+                    <span class="sub-logo">AI Knowledge Hub v2.0</span>
+                </div>
+            </div>
+            
+            <div class="system-status">
+                <div class="status-item" id="dbStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-label">POSTGRES</span>
+                </div>
+                <div class="status-item" id="redisStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-label">REDIS</span>
+                </div>
+                <div class="status-item" id="ollamaStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-label">OLLAMA</span>
+                </div>
+            </div>
+
+            <div class="user-control">
+                <span class="user-greeting">Welcome, Sir</span>
+                <button onclick="logout()" class="btn-logout" title="Log Out">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <section class="stats-bar">
+            <div class="stat-card">
+                <i data-lucide="bookmark" class="cyan-icon"></i>
+                <div class="stat-info">
+                    <h3 id="statTotal">0</h3>
+                    <p>Total Links</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="star" class="orange-icon"></i>
+                <div class="stat-info">
+                    <h3 id="statFavorites">0</h3>
+                    <p>Favorites</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="book-open" class="cyan-icon"></i>
+                <div class="stat-info">
+                    <h3 id="statUnread">0</h3>
+                    <p>Unread</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="hash" class="cyan-icon"></i>
+                <div class="stat-info">
+                    <h3 id="statTags">0</h3>
+                    <p>Unique Tags</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            <!-- Left Panel: Chat Interface -->
+            <section class="workspace-panel chat-panel">
+                <div class="panel-header">
+                    <h2><i data-lucide="message-square"></i> JARVIS Interface</h2>
+                    <div class="chat-actions">
+                        <label class="toggle-container">
+                            <input type="checkbox" id="chkUseRag" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Use RAG</span>
+                        </label>
+                        <button id="btnNewChat" class="btn-icon" title="New Conversation">
+                            <i data-lucide="plus-circle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="avatar">J</div>
+                        <div class="message-content">
+                            <p>Good day, Sir. I am online and ready to assist you. All secure databanks have been synchronized. Ask me anything about your archived bookmarks.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="chat-input-area" id="chatForm">
+                    <input type="text" id="chatInput" placeholder="Ask JARVIS..." required autocomplete="off">
+                    <button type="submit" class="btn-send">
+                        <i data-lucide="send"></i>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Panel: Bookmark Management & Collections -->
+            <section class="workspace-panel content-panel">
+                <div class="content-controls">
+                    <!-- Search Bar -->
+                    <div class="search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="searchBar" placeholder="Hybrid Search (Semantic + Text)...">
+                        <button id="btnClearSearch" class="btn-clear-search" style="display:none;">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+
+                    <!-- Add Bookmark Trigger -->
+                    <button class="btn-primary" id="btnShowAddBookmark">
+                        <i data-lucide="plus"></i> Add Link
+                    </button>
+                </div>
+
+                <div class="content-body">
+                    <!-- Sidebar: Collections & Navigation -->
+                    <aside class="collections-sidebar">
+                        <div class="sidebar-section">
+                            <h3>Quick Filters</h3>
+                            <ul class="filter-list">
+                                <li class="active-filter" id="filterAll">
+                                    <i data-lucide="archive"></i> All Bookmarks
+                                </li>
+                                <li id="filterFav">
+                                    <i data-lucide="star"></i> Favorites
+                                </li>
+                                <li id="filterUnread">
+                                    <i data-lucide="book-open"></i> Unread
+                                </li>
+                                <li id="filterArchived" style="display:none;">
+                                    <i data-lucide="trash-2"></i> Trash
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="section-header">
+                                <h3>Collections</h3>
+                                <button id="btnCreateCollection" class="btn-icon-small" title="Create Collection">
+                                    <i data-lucide="folder-plus"></i>
+                                </button>
+                            </div>
+                            <ul class="collection-list" id="collectionList">
+                                <!-- Dynamic Collections -->
+                            </ul>
+                        </div>
+                    </aside>
+
+                    <!-- Main grid of bookmark items -->
+                    <div class="bookmarks-grid-container">
+                        <div class="filter-indicator" id="filterIndicator" style="display:none;">
+                            <span>Active filter: <strong id="filterName">All Bookmarks</strong></span>
+                            <button id="btnResetFilters" class="btn-text-only">Clear Filter</button>
+                        </div>
+                        <div class="bookmarks-grid" id="bookmarksGrid">
+                            <!-- Dynamic Bookmark Cards -->
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <p>Retrieving secure database nodes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals & Overlays -->
+    
+    <!-- Modal: Add Bookmark -->
+    <div class="modal-overlay" id="addBookmarkModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Add New Resource Link</h2>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <form id="addBookmarkForm">
+                <div class="form-group">
+                    <label for="bookmarkUrl">Resource URL</label>
+                    <input type="url" id="bookmarkUrl" required placeholder="https://example.com/deep-dive">
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkTitle">Title (Optional)</label>
+                    <input type="text" id="bookmarkTitle" placeholder="Leave blank for automatic scraper resolution">
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkTags">Tags (Comma-separated)</label>
+                    <input type="text" id="bookmarkTags" placeholder="ai, tutorial, cryptography">
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkCollection">Assign Collection (Optional)</label>
+                    <select id="bookmarkCollection">
+                        <option value="">No Collection</option>
+                        <!-- Dynamic select options -->
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-close-modal">Cancel</button>
+                    <button type="submit" class="btn-primary">Initiate Scraper</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Create Collection -->
+    <div class="modal-overlay" id="createCollectionModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Create Knowledge Collection</h2>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <form id="createCollectionForm">
+                <div class="form-group">
+                    <label for="collectionName">Collection Name</label>
+                    <input type="text" id="collectionName" required placeholder="Project Jarvis">
+                </div>
+                <div class="form-group">
+                    <label for="collectionDesc">Description (Optional)</label>
+                    <input type="text" id="collectionDesc" placeholder="Materials relating to AI operations.">
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="collectionIcon">Icon Name</label>
+                        <select id="collectionIcon">
+                            <option value="folder">Folder</option>
+                            <option value="code">Code</option>
+                            <option value="database">Database</option>
+                            <option value="cpu">CPU</option>
+                            <option value="book">Book</option>
+                            <option value="globe">Globe</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="collectionColor">Color Accent</label>
+                        <input type="color" id="collectionColor" value="#00e5ff">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-close-modal">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Space</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Overlay: Bookmark Detail Panel -->
+    <div class="detail-panel-overlay" id="detailPanelOverlay">
+        <div class="detail-panel">
+            <div class="detail-header">
+                <button id="btnBackToGrid"><i data-lucide="arrow-left"></i> Back</button>
+                <div class="detail-actions">
+                    <button id="btnDetailFavorite" class="btn-icon-accent" title="Toggle Favorite"><i data-lucide="star"></i></button>
+                    <button id="btnDetailRead" class="btn-icon-accent" title="Toggle Read Status"><i data-lucide="book-open"></i></button>
+                    <button id="btnDetailArchive" class="btn-icon-accent delete-btn" title="Archive Bookmark"><i data-lucide="trash-2"></i></button>
+                </div>
+            </div>
+            <div class="detail-body" id="detailBody">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
