@@ -1,6 +1,6 @@
 // frontend/auth.js
 
-window.API_BASE = window.API_BASE || 'https://jarvis-backend.onrender.com';
+window.API_BASE = window.API_BASE || 'https://jarvis-backend-gq1f.onrender.com';
 
 
 function getToken() {

@@ -1,5 +1,6 @@
-const API_BASE = window.API_BASE || 'https://jarvis-backend.onrender.com';
-const WS_BASE = 'wss://jarvis-backend.onrender.com';
+const API_BASE = window.API_BASE || 'https://jarvis-backend-gq1f.onrender.com';
+const WS_BASE = 'wss://jarvis-backend-gq1f.onrender.com';
+
 
 
 
