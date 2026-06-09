@@ -21,11 +21,11 @@ from core.security.auth import create_access_token, get_current_user
 from core.security.crypto import JarvisCrypto, hash_password, verify_password
 
 # ── Globals ─────────────────────────────────────────────────────────────────
-crypto: JarvisCrypto | None = None
-rag:    JarvisRAG    | None = None
-redis_client: redis.Redis    | None = None
-db_pool:      asyncpg.Pool   | None = None
-ingestion_worker: IngestionWorker | None = None
+crypto: Optional[JarvisCrypto] = None
+rag:    Optional[JarvisRAG] = None
+redis_client: Optional[redis.Redis] = None
+db_pool:      Optional[asyncpg.Pool] = None
+ingestion_worker: Optional[IngestionWorker] = None
 
 
 @asynccontextmanager
@@ -666,7 +666,7 @@ async def _store_message(
     conv_id: uuid.UUID,
     role:    str,
     content: str,
-    citations: list[str] | None = None,
+    citations: Optional[List[str]] = None,
 ):
     dek = crypto.generate_dek()
     wrapped, dek_iv, dek_tag = crypto.wrap_dek(dek)

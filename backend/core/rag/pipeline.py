@@ -1,8 +1,9 @@
 # core/rag/pipeline.py
 from __future__ import annotations
+import os
 import json
 from dataclasses import dataclass, field
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator, List, Optional
 import uuid
 
 from langchain_chroma import Chroma
@@ -50,10 +51,13 @@ class JarvisRAG:
             model=config.embedding_model,
             base_url=config.ollama_base_url,
         )
+        # Store vector DB data in local project directory to avoid write access issues
+        db_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "chroma"))
+        os.makedirs(db_dir, exist_ok=True)
         self.vector_store = Chroma(
             collection_name="jarvis_knowledge",
             embedding_function=self.embeddings,
-            persist_directory="/data/chroma",
+            persist_directory=db_dir,
         )
         self.llm = ChatOllama(
             model=config.llm_model,
@@ -134,7 +138,7 @@ class JarvisRAG:
         context = "\n".join(f"{m['role']}: {m['content'][:200]}" for m in recent)
         return f"Conversation so far:\n{context}\n\nCurrent question: {question}"
 
-    async def query(self, question: str, history: list[dict] | None = None) -> str:
+    async def query(self, question: str, history: Optional[List[dict]] = None) -> str:
         try:
             return await self.rag_chain.ainvoke(
                 self._build_question(question, history or [])
@@ -154,7 +158,7 @@ class JarvisRAG:
                 return f"I encountered an error accessing my neural sub-routines, Sir: {str(inner_e)}"
 
     async def query_stream(
-        self, question: str, history: list[dict] | None = None
+        self, question: str, history: Optional[List[dict]] = None
     ) -> AsyncGenerator[str, None]:
         q = self._build_question(question, history or [])
         try:

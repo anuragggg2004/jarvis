@@ -1,5 +1,6 @@
-const API_BASE = window.API_BASE || 'http://localhost:8000';
-const WS_BASE = 'ws://localhost:8000';
+const API_BASE = window.API_BASE || 'https://jarvis-backend.onrender.com';
+const WS_BASE = 'wss://jarvis-backend.onrender.com';
+
 
 
 // App State

@@ -7,7 +7,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import httpx
 import trafilatura
@@ -111,7 +111,7 @@ class IngestionWorker:
                     str(exc), uuid.UUID(job_id),
                 )
 
-    async def _extract(self, url: str, source_type: str | None) -> IngestionResult:
+    async def _extract(self, url: str, source_type: Optional[str]) -> IngestionResult:
         domain = url.split("/")[2].replace("www.", "") if "//" in url else url
         if source_type == "youtube" or "youtube.com" in url or "youtu.be" in url:
             return await self._extract_youtube(url, domain)

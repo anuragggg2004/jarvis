@@ -1,6 +1,7 @@
 // frontend/auth.js
 
-window.API_BASE = window.API_BASE || 'http://localhost:8000';
+window.API_BASE = window.API_BASE || 'https://jarvis-backend.onrender.com';
+
 
 function getToken() {
     return localStorage.getItem('jarvis_token');
