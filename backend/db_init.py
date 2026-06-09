@@ -34,16 +34,16 @@ async def initialize():
 
     # Check if default user exists
     user = await conn.fetchrow("SELECT * FROM jarvis_user WHERE username = 'anurag'")
+    password = settings.MASTER_PASSPHRASE
+    pwd_hash = hash_password(password)
+
+    # Generate salt and derived key
+    salt = secrets.token_bytes(16)
+    crypto = JarvisCrypto(password.encode(), salt)
+    derived_key = crypto.master_key
+
     if not user:
         print("Seeding default user 'anurag'...")
-        password = settings.MASTER_PASSPHRASE
-        pwd_hash = hash_password(password)
-
-        # Generate salt and derived key
-        salt = secrets.token_bytes(16)
-        crypto = JarvisCrypto(password.encode(), salt)
-        derived_key = crypto.master_key
-
         await conn.execute(
             """INSERT INTO jarvis_user (
                 username, email, password_hash, master_key_salt, encrypted_master_key
@@ -56,7 +56,19 @@ async def initialize():
         )
         print("Default user 'anurag' seeded successfully.")
     else:
-        print("Default user 'anurag' already exists.")
+        print("Updating existing user 'anurag' credentials to match settings...")
+        await conn.execute(
+            """UPDATE jarvis_user SET
+                password_hash = $1,
+                master_key_salt = $2,
+                encrypted_master_key = $3
+               WHERE username = 'anurag'""",
+            pwd_hash,
+            salt,
+            derived_key
+        )
+        print("Operator 'anurag' credentials updated in database.")
+
 
     await conn.close()
 
