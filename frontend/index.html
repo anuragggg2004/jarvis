@@ -215,7 +215,18 @@
                         <!-- Dynamic select options -->
                     </select>
                 </div>
+                <hr style="border: 0; border-top: 1px solid rgba(0, 229, 255, 0.1); margin: 20px 0;">
+                <div class="form-group">
+                    <label>Bulk Import from Browser</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button type="button" class="btn-secondary" id="btnUploadChromeHTML" style="flex: 1; padding: 10px;">
+                            Upload Chrome Bookmarks HTML
+                        </button>
+                        <input type="file" id="chromeHTMLFileInput" accept=".html" style="display:none;">
+                    </div>
+                </div>
                 <div class="modal-actions">
+
                     <button type="button" class="btn-secondary btn-close-modal">Cancel</button>
                     <button type="submit" class="btn-primary">Initiate Scraper</button>
                 </div>

@@ -105,7 +105,17 @@ function registerEvents() {
     });
 
     // Form Submissions
+    const btnUploadChromeHTML = document.getElementById('btnUploadChromeHTML');
+    const chromeHTMLFileInput = document.getElementById('chromeHTMLFileInput');
+    if (btnUploadChromeHTML && chromeHTMLFileInput) {
+        btnUploadChromeHTML.addEventListener('click', () => {
+            chromeHTMLFileInput.click();
+        });
+        chromeHTMLFileInput.addEventListener('change', handleChromeHTMLImport);
+    }
+
     addBookmarkForm.addEventListener('submit', handleAddBookmark);
+
     createCollectionForm.addEventListener('submit', handleCreateCollection);
     chatForm.addEventListener('submit', handleChatSubmit);
 
@@ -530,7 +540,72 @@ async function handleCreateCollection(e) {
     }
 }
 
+// Handle Chrome Bookmarks HTML Import
+async function handleChromeHTMLImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    closeModal(addBookmarkModal);
+
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+        const text = event.target.result;
+        
+        // Match all HREF attributes and anchor text in HTML
+        const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/gi;
+        let match;
+        const links = [];
+        
+        while ((match = regex.exec(text)) !== null) {
+            const url = match[1];
+            const title = match[2];
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                links.push({ url, title });
+            }
+        }
+
+        if (links.length === 0) {
+            alert("No valid bookmark links resolved from the uploaded HTML file, Sir.");
+            return;
+        }
+
+        const confirmImport = confirm(`System found ${links.length} bookmarks. Proceed to import them in bulk into your JARVIS storage?`);
+        if (!confirmImport) return;
+
+        alert(`Initiated batch scraper for ${links.length} nodes. JARVIS will process them in the background. Please check the logs/status board.`);
+
+        // Loop through all links and make non-blocking POST requests to queue ingestion jobs
+        for (const link of links) {
+            try {
+                fetch(`${API_BASE}/bookmarks`, {
+                    method: 'POST',
+                    headers: {
+                        ...getAuthHeader(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: link.url,
+                        title: link.title,
+                        source: 'import'
+                    })
+                });
+                // Add a brief delay to prevent overloading Redis/Postgres instantly
+                await new Promise(r => setTimeout(r, 150));
+            } catch (err) {
+                console.error(`Failed to queue bookmark ${link.url}:`, err);
+            }
+        }
+        
+        // Refresh bookmarks after starting the batch
+        setTimeout(fetchBookmarks, 1000);
+    };
+
+    reader.readAsText(file);
+    chromeHTMLFileInput.value = '';
+}
+
 // Card quick actions helpers
+
 async function toggleCardFavorite(id, currentVal) {
     try {
         await fetch(`${API_BASE}/bookmarks/${id}`, {
